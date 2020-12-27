@@ -2,26 +2,28 @@
 #include <stdlib.h>
 #include <time.h>
 
-int *alloc_array(int size)
+typedef unsigned long long int uint_t;
+
+uint_t *alloc_array(uint_t size)
 {
-    int *buffer = (int *) malloc(size * sizeof(int));
+    uint_t *buffer = (uint_t *) malloc(size * sizeof(uint_t));
     return buffer;
 }
 
-void print_array(int *array, int size)
+void print_array(uint_t *array, uint_t size)
 {
-    int i = 0;
+    unsigned int i = 0;
     for (i = 0; i < size; i++) {
-        printf("%d\t", array[i]);
+        printf("%llu\t", array[i]);
     }
 
     printf("\n");
 }
 
-int brute_force_count_inversions(int *array, int n)
+uint_t brute_force_count_inversions(uint_t *array, uint_t n)
 {
-    int i = 0, j = 0;
-    int sum_inversions = 0;
+    uint_t i = 0, j = 0;
+    uint_t sum_inversions = 0;
 
     for (i = 0; i < n; i++) {
         for (j = i + 1; j < n; j++) {
@@ -34,16 +36,31 @@ int brute_force_count_inversions(int *array, int n)
     return sum_inversions;
 }
 
-int merge_count_split_inversions(int *array, int start, int middle, int end)
+uint_t *read_input()
 {
-    int i = 0;
-    int left_pointer = start;
-    int right_pointer = middle + 1;
-    int size = end + 1;
-    int *tmp_array = alloc_array(size);
+    uint_t i = 0;
+    uint_t size = 100000;
+    uint_t *buffer = alloc_array(size);
+    FILE *file = fopen("input.txt", "r");
 
-    int split_inversions_sum = 0;
-    int current_split_inversions = 0;
+    for (i = 0; i < size; i++) {
+        fscanf(file, "%llu", &(buffer[i]));
+    }
+
+    fclose(file);
+    return buffer;
+}
+
+uint_t merge_count_split_inversions(uint_t *array, uint_t start, uint_t middle, uint_t end)
+{
+    uint_t i = 0;
+    uint_t left_pointer = start;
+    uint_t right_pointer = middle + 1;
+    uint_t size = end + 1;
+    uint_t *tmp_array = alloc_array(size);
+
+    uint_t split_inversions_sum = 0;
+    uint_t current_split_inversions = 0;
 
     for (i = start; left_pointer <= middle && right_pointer <= end; i++) {
         if (array[left_pointer] <= array[right_pointer]) {
@@ -53,7 +70,7 @@ int merge_count_split_inversions(int *array, int start, int middle, int end)
             tmp_array[i] = array[right_pointer];
             right_pointer++;
 
-            current_split_inversions = (middle + 1) - left_pointer; // +1 talvez suma
+            current_split_inversions = (middle + 1) - left_pointer;
             split_inversions_sum += current_split_inversions;
         }
     }
@@ -79,42 +96,35 @@ int merge_count_split_inversions(int *array, int start, int middle, int end)
     return split_inversions_sum;
 }
 
-int merge_sort(int *array, int start, int end)
+uint_t merge_sort(uint_t *array, uint_t start, uint_t end)
 {
-    int middle = (start + end)/2;
+    uint_t middle = (start + end)/2;
 
     if (start >= end) {
         return 0;
     }
 
-    int split_inversions_left = merge_sort(array, start, middle);
-    int split_inversions_right = merge_sort(array, middle + 1, end);
-    int split_inv = merge_count_split_inversions(array, start, middle, end);
+    uint_t split_inversions_left = merge_sort(array, start, middle);
+    uint_t split_inversions_right = merge_sort(array, middle + 1, end);
+    uint_t split_inv = merge_count_split_inversions(array, start, middle, end);
     return split_inv + split_inversions_left + split_inversions_right;
 }
 
 int main(void)
 {
-    int i =0;
-    int size = 0;
-    scanf("%d", &size);
-    int *array = alloc_array(size);
+    uint_t size = 100000;
+    uint_t *array = read_input();
 
-    srand(time(NULL));
-    for (i = 0; i < size; i++) {
-        array[i] = rand() % 100000;
-    }
-
-    int brute_force_solution = brute_force_count_inversions(array, size);
-    int divide_conquer_solution = merge_sort(array, 0, size - 1);
-
-    // print_array(array, size);
+    uint_t brute_force_solution = brute_force_count_inversions(array, size);
+    uint_t divide_conquer_solution = merge_sort(array, 0, size - 1);
 
     if (divide_conquer_solution == brute_force_solution) {
+        printf("%llu\n", divide_conquer_solution);
         printf("CORRECT ANSWER!\n");
     } else {
-        printf("Divide and Conquer returned %d but expected was %d\n", divide_conquer_solution, brute_force_solution);
+        printf("Divide and Conquer returned %llu but expected was %llu\n", divide_conquer_solution, brute_force_solution);
     }
 
+    free(array);
     return 0;
 }
